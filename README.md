@@ -12,29 +12,33 @@ composer require phpdot/i18n
 
 ```mermaid
 graph TD
-    T[Translator] -->|loads via| LI[LoaderInterface]
-    T -->|"3-level cache:<br/>in-memory → PSR-16 → loader"| PSR[PSR-16 Cache]
-    T -->|formats via| ICU[MessageFormatter ext-intl]
-    T -->|"exposed() filters"| PAT[Pattern Matcher]
+    subgraph Translator
+        TR[translate / exposed] -->|1. check| MEM[In-Memory Cache]
+        MEM -->|miss| PSR[PSR-16 Cache]
+        PSR -->|miss| LI[LoaderInterface]
+        LI -->|loaded| PSR
+        PSR -->|cached| MEM
+        TR -->|2. format| ICU[MessageFormatter<br/>ext-intl]
+    end
 
-    LI --> PHP[PhpArrayLoader]
-    LI --> JSON[JsonLoader]
-    LI --> CL[ChainLoader]
-    CL -->|merges| PHP
-    CL -->|merges| DB["Custom Loader (DB)"]
+    LI -.->|implements| PHP[PhpArrayLoader]
+    LI -.->|implements| JSON[JsonLoader]
+    LI -.->|implements| CL[ChainLoader]
+    CL -->|wraps| PHP
+    CL -->|wraps| JSON
 
-    V[ICUValidator] -->|validates| ICU
+    V[ICUValidator] -->|uses| ICU2[MessageFormatter<br/>ext-intl]
 
-    style T fill:#2d3748,color:#fff
+    style TR fill:#2d3748,color:#fff
     style V fill:#2d3748,color:#fff
-    style LI fill:#4a5568,color:#fff
+    style MEM fill:#4a5568,color:#fff
     style PSR fill:#4a5568,color:#fff
+    style LI fill:#4a5568,color:#fff
     style ICU fill:#4a5568,color:#fff
-    style PAT fill:#4a5568,color:#fff
+    style ICU2 fill:#4a5568,color:#fff
     style PHP fill:#718096,color:#fff
     style JSON fill:#718096,color:#fff
     style CL fill:#718096,color:#fff
-    style DB fill:#718096,color:#fff
 ```
 
 ## How It Works
