@@ -11,31 +11,33 @@ composer require phpdot/i18n
 ## Architecture
 
 ```mermaid
-graph TD
+graph LR
     subgraph Translator
-        TR[translate / exposed] -->|1. check| MEM[In-Memory Cache]
-        MEM -->|miss| PSR[PSR-16 Cache]
-        PSR -->|miss| LI[LoaderInterface]
-        LI -->|loaded| PSR
-        PSR -->|cached| MEM
-        TR -->|2. format| ICU[MessageFormatter<br/>ext-intl]
+        direction TB
+        T[Translator]
+        T --- translate
+        T --- exposed
+        T --- setLocale
+        T --- clearCache
     end
 
-    LI -.->|implements| PHP[PhpArrayLoader]
-    LI -.->|implements| JSON[JsonLoader]
-    LI -.->|implements| CL[ChainLoader]
-    CL -->|wraps| PHP
-    CL -->|wraps| JSON
+    T -->|injected| CACHE[PSR-16 CacheInterface]
+    T -->|injected| LOADER[LoaderInterface]
+    T -->|uses internally| FMT[MessageFormatter<br/>ext-intl]
 
-    V[ICUValidator] -->|uses| ICU2[MessageFormatter<br/>ext-intl]
+    PHP[PhpArrayLoader] -.->|implements| LOADER
+    JSON[JsonLoader] -.->|implements| LOADER
+    CL[ChainLoader] -.->|implements| LOADER
+    CL -->|wraps any| LOADER
 
-    style TR fill:#2d3748,color:#fff
+    V[ICUValidator] -->|uses| FMT2[MessageFormatter<br/>ext-intl]
+
+    style T fill:#2d3748,color:#fff
     style V fill:#2d3748,color:#fff
-    style MEM fill:#4a5568,color:#fff
-    style PSR fill:#4a5568,color:#fff
-    style LI fill:#4a5568,color:#fff
-    style ICU fill:#4a5568,color:#fff
-    style ICU2 fill:#4a5568,color:#fff
+    style CACHE fill:#4a5568,color:#fff
+    style LOADER fill:#4a5568,color:#fff
+    style FMT fill:#4a5568,color:#fff
+    style FMT2 fill:#4a5568,color:#fff
     style PHP fill:#718096,color:#fff
     style JSON fill:#718096,color:#fff
     style CL fill:#718096,color:#fff
@@ -45,27 +47,33 @@ graph TD
 
 ### Translation flow
 
-```
-translate('messages.welcome', ['name' => 'Omar'])
-    │
-    ├── 1. Load translations for current language
-    │       ├── In-memory array (per-request)     ← fastest
-    │       ├── PSR-16 cache (Redis/File/APCu)    ← shared across requests
-    │       └── Loader (PHP files/JSON/DB chain)  ← cold start only
-    │
-    ├── 2. Look up key in current language
-    │       └── If missing → fall back to default language
-    │           └── If still missing → return [key], track in getMissing()
-    │
-    ├── 3. Auto-inject _locale_, _region_, _lang_ into params
-    │
-    └── 4. Format via ICU MessageFormatter (ext-intl)
-            └── Plurals, select, dates, numbers, currency — all handled
+```mermaid
+flowchart TD
+    A["translate(key, params)"] --> B{In-memory cache?}
+    B -->|hit| F[Get template]
+    B -->|miss| C{PSR-16 cache?}
+    C -->|hit| D[Store in memory]
+    D --> F
+    C -->|miss| E["LoaderInterface.loadAll()"]
+    E --> G[Store in PSR-16 + memory]
+    G --> F
+    F --> H{Key found in<br/>current language?}
+    H -->|yes| K[Use template]
+    H -->|no| I{Key found in<br/>default language?}
+    I -->|yes| K
+    I -->|no| J["Return [key]<br/>Track in getMissing()"]
+    K --> L["Inject _locale_, _region_, _lang_"]
+    L --> M["MessageFormatter.format(params)"]
+    M --> N[Return formatted string]
+
+    style A fill:#2d3748,color:#fff
+    style J fill:#9b2c2c,color:#fff
+    style N fill:#276749,color:#fff
 ```
 
 ### Caching
 
-Translations are cached per language. Three levels:
+Translations are cached per language at three levels:
 
 1. **In-memory array** — avoids repeated cache reads within a single request/worker
 2. **PSR-16 cache** — any backend (Redis, File, APCu via phpdot/cache or any PSR-16 implementation)
