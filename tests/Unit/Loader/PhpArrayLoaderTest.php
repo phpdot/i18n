@@ -120,4 +120,16 @@ final class PhpArrayLoaderTest extends TestCase
             self::assertIsString($value, "Value for key '{$key}' should be string");
         }
     }
+
+    #[Test]
+    public function skipsFileThatDoesNotReturnArray(): void
+    {
+        $loader = new PhpArrayLoader(__DIR__ . '/../../Fixtures/lang_bad');
+        $translations = $loader->loadAll('en');
+
+        // valid.php returns array, bad_return.php returns null — should be skipped
+        self::assertArrayHasKey('valid.hello', $translations);
+        self::assertSame('Hello!', $translations['valid.hello']);
+        // No crash from bad_return.php
+    }
 }
