@@ -43,10 +43,13 @@ final class PhpArrayLoader implements LoaderInterface
 
         foreach ($files as $file) {
             $prefix = basename($file, '.php');
-
-            /** @var array<string, string> $entries */
             $entries = require $file;
 
+            if (!is_array($entries)) {
+                continue;
+            }
+
+            /** @var array<string, string> $entries */
             foreach ($entries as $key => $value) {
                 $translations[$prefix . '.' . $key] = $value;
             }
