@@ -1,6 +1,6 @@
 {
     "name": "phpdot/i18n",
-    "description": "Internationalization with ICU MessageFormat, pluggable loaders, PSR-16 caching. Standalone.",
+    "description": "Internationalization with ICU MessageFormat, pluggable loaders, PSR-16 caching.",
     "type": "library",
     "license": "MIT",
     "authors": [
@@ -15,10 +15,16 @@
         "ext-intl": "*",
         "psr/simple-cache": "^3.0"
     },
+    "extra": {
+        "phpdot": {
+            "package": "PHPdot\\I18n\\I18nPackage"
+        }
+    },
     "suggest": {
         "phpdot/cache": "PSR-16 cache implementation for production caching"
     },
     "require-dev": {
+        "phpdot/package": "^1.0",
         "phpunit/phpunit": "^11.0",
         "phpstan/phpstan": "^2.0",
         "phpstan/phpstan-strict-rules": "^2.0",
