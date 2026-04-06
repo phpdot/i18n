@@ -92,14 +92,20 @@ $translator->clearCache();       // clear all languages
 ### Basic
 
 ```php
+use PHPdot\I18n\I18nConfig;
 use PHPdot\I18n\Translator;
 use PHPdot\I18n\Loader\PhpArrayLoader;
 
-$translator = new Translator(
-    loader: new PhpArrayLoader('/app/lang'),
-    cache: $cache,   // any PSR-16 implementation
+$config = new I18nConfig(
     default: 'en',
     supported: ['en', 'ar', 'fr'],
+    path: '/app/lang',
+);
+
+$translator = new Translator(
+    loader: new PhpArrayLoader($config),
+    cache: $cache,   // any PSR-16 implementation
+    config: $config,
 );
 
 $translator->setLocale('ar_JO');
@@ -174,16 +180,23 @@ Missing keys are tracked via `getMissing()`.
 ### With DB overrides
 
 ```php
+use PHPdot\I18n\I18nConfig;
 use PHPdot\I18n\Loader\ChainLoader;
+use PHPdot\I18n\Loader\PhpArrayLoader;
+
+$config = new I18nConfig(
+    default: 'en',
+    supported: ['en', 'ar'],
+    path: '/app/lang',
+);
 
 $translator = new Translator(
     loader: new ChainLoader([
-        new PhpArrayLoader('/app/lang'),  // file defaults
+        new PhpArrayLoader($config),      // file defaults
         new DbLoader($db, $tenantId),     // admin overrides (app-level)
     ]),
     cache: $cache,
-    default: 'en',
-    supported: ['en', 'ar'],
+    config: $config,
 );
 ```
 
@@ -265,10 +278,41 @@ $missing = $translator->getMissing();
 
 `LoaderInterface` has one method: `loadAll(string $language): array<string, string>`. Returns a flat key → ICU template map.
 
+## Framework Integration
+
+When used with PHPdot, classes are annotated with container attributes:
+
+- `I18nConfig` — `#[Config('i18n')]` → hydrated from `config/i18n.php`
+- `PhpArrayLoader` — `#[Singleton]` `#[Binds(LoaderInterface::class)]` → default loader
+- `ICUValidator` — `#[Singleton]`
+- `Translator` — `#[Scoped]` → fresh per request
+
+Create `config/i18n.php` in your app:
+
+```php
+return [
+    'default' => 'en',
+    'supported' => ['en', 'ar', 'fr'],
+    'path' => __DIR__ . '/../lang',
+    'ttl' => 3600,
+];
+```
+
+Resolve from container:
+
+```php
+$translator = $container->get(Translator::class);
+$translator->setLocale('ar_JO');
+echo $translator->translate('messages.welcome', ['name' => 'Omar']);
+```
+
+Attributes are inert metadata. Without the framework scanner, nothing reads them. Standalone usage works the same as before.
+
 ## Requirements
 
 - PHP >= 8.3
 - ext-intl
+- phpdot/container ^1.2
 - psr/simple-cache ^3.0
 
 ## License

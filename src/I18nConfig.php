@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace PHPdot\I18n;
 
+use PHPdot\Container\Attribute\Config;
+
+#[Config('i18n')]
 final readonly class I18nConfig
 {
     /**

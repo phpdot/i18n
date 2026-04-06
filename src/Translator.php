@@ -9,9 +9,11 @@ declare(strict_types=1);
 
 namespace PHPdot\I18n;
 
+use PHPdot\Container\Attribute\Scoped;
 use PHPdot\I18n\Loader\LoaderInterface;
 use Psr\SimpleCache\CacheInterface;
 
+#[Scoped]
 final class Translator
 {
     private string $locale;
@@ -24,22 +26,13 @@ final class Translator
     /** @var array<string, list<string>> language => [missing keys] */
     private array $missing = [];
 
-    /**
-     * @param LoaderInterface $loader Translation loader
-     * @param CacheInterface $cache PSR-16 cache for compiled translations
-     * @param string $default Default language code
-     * @param list<string> $supported List of supported language codes
-     * @param int $ttl Cache TTL in seconds
-     */
     public function __construct(
         private readonly LoaderInterface $loader,
         private readonly CacheInterface $cache,
-        private readonly string $default = 'en',
-        private readonly array $supported = ['en'],
-        private readonly int $ttl = 3600,
+        private readonly I18nConfig $config = new I18nConfig(),
     ) {
-        $this->locale = $default;
-        $this->language = $default;
+        $this->locale = $config->default;
+        $this->language = $config->default;
         $this->region = '';
     }
 
@@ -56,8 +49,8 @@ final class Translator
         $region = $parts[1] ?? '';
 
         if (!$this->isSupported($language)) {
-            $this->locale = $this->default;
-            $this->language = $this->default;
+            $this->locale = $this->config->default;
+            $this->language = $this->config->default;
             $this->region = '';
 
             return;
@@ -145,8 +138,8 @@ final class Translator
 
         $current = $this->loadTranslations($this->language);
 
-        if ($this->language !== $this->default) {
-            $defaults = $this->loadTranslations($this->default);
+        if ($this->language !== $this->config->default) {
+            $defaults = $this->loadTranslations($this->config->default);
             $current = array_merge($defaults, $current);
         }
 
@@ -256,7 +249,7 @@ final class Translator
             return;
         }
 
-        foreach ($this->supported as $lang) {
+        foreach ($this->config->supported as $lang) {
             $this->cache->delete('i18n.' . $lang);
         }
 
@@ -292,7 +285,7 @@ final class Translator
      */
     public function getDefault(): string
     {
-        return $this->default;
+        return $this->config->default;
     }
 
     /**
@@ -302,7 +295,7 @@ final class Translator
      */
     public function getSupported(): array
     {
-        return $this->supported;
+        return $this->config->supported;
     }
 
     /**
@@ -310,7 +303,7 @@ final class Translator
      */
     public function isSupported(string $language): bool
     {
-        return in_array($language, $this->supported, true);
+        return in_array($language, $this->config->supported, true);
     }
 
     /**
@@ -324,8 +317,8 @@ final class Translator
             return $translations[$key];
         }
 
-        if ($this->language !== $this->default) {
-            $defaults = $this->loadTranslations($this->default);
+        if ($this->language !== $this->config->default) {
+            $defaults = $this->loadTranslations($this->config->default);
 
             if (isset($defaults[$key])) {
                 return $defaults[$key];
@@ -358,7 +351,7 @@ final class Translator
         }
 
         $loaded = $this->loader->loadAll($language);
-        $this->cache->set($cacheKey, $loaded, $this->ttl);
+        $this->cache->set($cacheKey, $loaded, $this->config->ttl);
         $this->translations[$language] = $loaded;
 
         return $loaded;

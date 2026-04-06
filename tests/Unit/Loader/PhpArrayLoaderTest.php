@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PHPdot\I18n\Tests\Unit\Loader;
 
+use PHPdot\I18n\I18nConfig;
 use PHPdot\I18n\Loader\PhpArrayLoader;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -17,10 +18,15 @@ final class PhpArrayLoaderTest extends TestCase
         $this->basePath = __DIR__ . '/../../Fixtures/lang';
     }
 
+    private function createLoader(?string $path = null): PhpArrayLoader
+    {
+        return new PhpArrayLoader(new I18nConfig(path: $path ?? $this->basePath));
+    }
+
     #[Test]
     public function loadsEnglishMessagesWithPrefixedKeys(): void
     {
-        $loader = new PhpArrayLoader($this->basePath);
+        $loader = $this->createLoader();
         $translations = $loader->loadAll('en');
 
         self::assertArrayHasKey('messages.welcome', $translations);
@@ -31,7 +37,7 @@ final class PhpArrayLoaderTest extends TestCase
     #[Test]
     public function loadsEnglishErrorsWithPrefixedKeys(): void
     {
-        $loader = new PhpArrayLoader($this->basePath);
+        $loader = $this->createLoader();
         $translations = $loader->loadAll('en');
 
         self::assertArrayHasKey('errors.not_found', $translations);
@@ -42,7 +48,7 @@ final class PhpArrayLoaderTest extends TestCase
     #[Test]
     public function loadsJsTranslationsWithDottedKeys(): void
     {
-        $loader = new PhpArrayLoader($this->basePath);
+        $loader = $this->createLoader();
         $translations = $loader->loadAll('en');
 
         self::assertArrayHasKey('js.buttons.save', $translations);
@@ -53,7 +59,7 @@ final class PhpArrayLoaderTest extends TestCase
     #[Test]
     public function mergesMultipleFilesForOneLanguage(): void
     {
-        $loader = new PhpArrayLoader($this->basePath);
+        $loader = $this->createLoader();
         $translations = $loader->loadAll('en');
 
         self::assertArrayHasKey('messages.welcome', $translations);
@@ -64,7 +70,7 @@ final class PhpArrayLoaderTest extends TestCase
     #[Test]
     public function loadsArabicTranslations(): void
     {
-        $loader = new PhpArrayLoader($this->basePath);
+        $loader = $this->createLoader();
         $translations = $loader->loadAll('ar');
 
         self::assertArrayHasKey('messages.welcome', $translations);
@@ -74,7 +80,7 @@ final class PhpArrayLoaderTest extends TestCase
     #[Test]
     public function arabicHasFewerKeysThanEnglish(): void
     {
-        $loader = new PhpArrayLoader($this->basePath);
+        $loader = $this->createLoader();
         $en = $loader->loadAll('en');
         $ar = $loader->loadAll('ar');
 
@@ -84,7 +90,7 @@ final class PhpArrayLoaderTest extends TestCase
     #[Test]
     public function returnsEmptyForNonExistentLanguage(): void
     {
-        $loader = new PhpArrayLoader($this->basePath);
+        $loader = $this->createLoader();
 
         self::assertSame([], $loader->loadAll('fr'));
     }
@@ -92,7 +98,7 @@ final class PhpArrayLoaderTest extends TestCase
     #[Test]
     public function returnsEmptyForNonExistentBasePath(): void
     {
-        $loader = new PhpArrayLoader('/non/existent/path');
+        $loader = $this->createLoader('/non/existent/path');
 
         self::assertSame([], $loader->loadAll('en'));
     }
@@ -100,7 +106,7 @@ final class PhpArrayLoaderTest extends TestCase
     #[Test]
     public function keysAreSorted(): void
     {
-        $loader = new PhpArrayLoader($this->basePath);
+        $loader = $this->createLoader();
         $translations = $loader->loadAll('en');
 
         $keys = array_keys($translations);
@@ -113,7 +119,7 @@ final class PhpArrayLoaderTest extends TestCase
     #[Test]
     public function allValuesAreStrings(): void
     {
-        $loader = new PhpArrayLoader($this->basePath);
+        $loader = $this->createLoader();
         $translations = $loader->loadAll('en');
 
         foreach ($translations as $key => $value) {
@@ -124,7 +130,7 @@ final class PhpArrayLoaderTest extends TestCase
     #[Test]
     public function skipsFileThatDoesNotReturnArray(): void
     {
-        $loader = new PhpArrayLoader(__DIR__ . '/../../Fixtures/lang_bad');
+        $loader = $this->createLoader(__DIR__ . '/../../Fixtures/lang_bad');
         $translations = $loader->loadAll('en');
 
         // valid.php returns array, bad_return.php returns null — should be skipped

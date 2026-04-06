@@ -9,6 +9,9 @@ declare(strict_types=1);
 
 namespace PHPdot\I18n;
 
+use PHPdot\Container\Attribute\Singleton;
+
+#[Singleton]
 final class ICUValidator
 {
     /**
