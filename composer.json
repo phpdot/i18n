@@ -15,16 +15,11 @@
         "ext-intl": "*",
         "psr/simple-cache": "^3.0"
     },
-    "extra": {
-        "phpdot": {
-            "package": "PHPdot\\I18n\\I18nPackage"
-        }
-    },
     "suggest": {
         "phpdot/cache": "PSR-16 cache implementation for production caching"
     },
     "require-dev": {
-        "phpdot/package": "^1.0",
+        "phpdot/container": "^1.2",
         "phpunit/phpunit": "^11.0",
         "phpstan/phpstan": "^2.0",
         "phpstan/phpstan-strict-rules": "^2.0",

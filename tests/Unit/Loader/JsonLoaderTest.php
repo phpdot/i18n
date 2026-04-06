@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PHPdot\I18n\Tests\Unit\Loader;
 
+use PHPdot\I18n\I18nConfig;
 use PHPdot\I18n\Loader\JsonLoader;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -17,10 +18,15 @@ final class JsonLoaderTest extends TestCase
         $this->basePath = __DIR__ . '/../../Fixtures/lang_json';
     }
 
+    private function createLoader(?string $path = null): JsonLoader
+    {
+        return new JsonLoader(new I18nConfig(path: $path ?? $this->basePath));
+    }
+
     #[Test]
     public function loadsEnglishMessagesWithPrefixedKeys(): void
     {
-        $loader = new JsonLoader($this->basePath);
+        $loader = $this->createLoader();
         $translations = $loader->loadAll('en');
 
         self::assertArrayHasKey('messages.welcome', $translations);
@@ -31,7 +37,7 @@ final class JsonLoaderTest extends TestCase
     #[Test]
     public function loadsEnglishErrors(): void
     {
-        $loader = new JsonLoader($this->basePath);
+        $loader = $this->createLoader();
         $translations = $loader->loadAll('en');
 
         self::assertArrayHasKey('errors.not_found', $translations);
@@ -41,7 +47,7 @@ final class JsonLoaderTest extends TestCase
     #[Test]
     public function loadsArabicMessages(): void
     {
-        $loader = new JsonLoader($this->basePath);
+        $loader = $this->createLoader();
         $translations = $loader->loadAll('ar');
 
         self::assertArrayHasKey('messages.welcome', $translations);
@@ -51,7 +57,7 @@ final class JsonLoaderTest extends TestCase
     #[Test]
     public function mergesMultipleJsonFiles(): void
     {
-        $loader = new JsonLoader($this->basePath);
+        $loader = $this->createLoader();
         $translations = $loader->loadAll('en');
 
         self::assertArrayHasKey('messages.welcome', $translations);
@@ -61,7 +67,7 @@ final class JsonLoaderTest extends TestCase
     #[Test]
     public function returnsEmptyForNonExistentLanguage(): void
     {
-        $loader = new JsonLoader($this->basePath);
+        $loader = $this->createLoader();
 
         self::assertSame([], $loader->loadAll('fr'));
     }
@@ -69,7 +75,7 @@ final class JsonLoaderTest extends TestCase
     #[Test]
     public function returnsEmptyForNonExistentBasePath(): void
     {
-        $loader = new JsonLoader('/non/existent/path');
+        $loader = $this->createLoader('/non/existent/path');
 
         self::assertSame([], $loader->loadAll('en'));
     }
@@ -77,7 +83,7 @@ final class JsonLoaderTest extends TestCase
     #[Test]
     public function keysAreSorted(): void
     {
-        $loader = new JsonLoader($this->basePath);
+        $loader = $this->createLoader();
         $translations = $loader->loadAll('en');
 
         $keys = array_keys($translations);
@@ -90,7 +96,7 @@ final class JsonLoaderTest extends TestCase
     #[Test]
     public function allValuesAreStrings(): void
     {
-        $loader = new JsonLoader($this->basePath);
+        $loader = $this->createLoader();
         $translations = $loader->loadAll('en');
 
         foreach ($translations as $key => $value) {

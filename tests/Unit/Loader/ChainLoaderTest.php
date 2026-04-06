@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PHPdot\I18n\Tests\Unit\Loader;
 
+use PHPdot\I18n\I18nConfig;
 use PHPdot\I18n\Loader\ChainLoader;
 use PHPdot\I18n\Loader\JsonLoader;
 use PHPdot\I18n\Loader\LoaderInterface;
@@ -16,8 +17,8 @@ final class ChainLoaderTest extends TestCase
     #[Test]
     public function mergesFromMultipleLoaders(): void
     {
-        $phpLoader = new PhpArrayLoader(__DIR__ . '/../../Fixtures/lang');
-        $jsonLoader = new JsonLoader(__DIR__ . '/../../Fixtures/lang_json');
+        $phpLoader = new PhpArrayLoader(new I18nConfig(path: __DIR__ . '/../../Fixtures/lang'));
+        $jsonLoader = new JsonLoader(new I18nConfig(path: __DIR__ . '/../../Fixtures/lang_json'));
 
         $chain = new ChainLoader([$phpLoader, $jsonLoader]);
         $translations = $chain->loadAll('en');
@@ -71,7 +72,7 @@ final class ChainLoaderTest extends TestCase
     #[Test]
     public function singleLoaderWorks(): void
     {
-        $loader = new PhpArrayLoader(__DIR__ . '/../../Fixtures/lang');
+        $loader = new PhpArrayLoader(new I18nConfig(path: __DIR__ . '/../../Fixtures/lang'));
         $chain = new ChainLoader([$loader]);
 
         self::assertArrayHasKey('messages.welcome', $chain->loadAll('en'));

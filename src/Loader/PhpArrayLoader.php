@@ -9,14 +9,18 @@ declare(strict_types=1);
 
 namespace PHPdot\I18n\Loader;
 
+use PHPdot\Container\Attribute\Binds;
+use PHPdot\Container\Attribute\Singleton;
+use PHPdot\I18n\I18nConfig;
+
+#[Singleton]
+#[Binds(LoaderInterface::class)]
 final class PhpArrayLoader implements LoaderInterface
 {
-    /**
-     * @param string $basePath Base directory containing language subdirectories
-     */
     public function __construct(
-        private readonly string $basePath,
-    ) {}
+        private readonly I18nConfig $config,
+    ) {
+    }
 
     /**
      * Load all translations for a language from PHP array files.
@@ -28,7 +32,7 @@ final class PhpArrayLoader implements LoaderInterface
      */
     public function loadAll(string $language): array
     {
-        $directory = $this->basePath . '/' . $language;
+        $directory = $this->config->path . '/' . $language;
 
         if (!is_dir($directory)) {
             return [];
