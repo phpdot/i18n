@@ -11,44 +11,39 @@ use PHPdot\Package\PackageInterface;
 use Psr\Container\ContainerInterface;
 use Psr\SimpleCache\CacheInterface;
 
-use function PHPdot\Container\scoped;
-use function PHPdot\Container\singleton;
-
 final class I18nPackage implements PackageInterface
 {
     public function register(ContainerBuilder $builder): void
     {
-        $builder->addDefinitions([
-            I18nConfig::class => singleton(static fn (): I18nConfig => new I18nConfig()),
+        $builder->add(I18nConfig::class, static fn (): I18nConfig => new I18nConfig())->singleton();
 
-            LoaderInterface::class => singleton(static function (ContainerInterface $c): LoaderInterface {
-                $config = $c->get(I18nConfig::class);
-                assert($config instanceof I18nConfig);
+        $builder->add(LoaderInterface::class, static function (ContainerInterface $c): LoaderInterface {
+            $config = $c->get(I18nConfig::class);
+            assert($config instanceof I18nConfig);
 
-                return new PhpArrayLoader($config->path);
-            }),
+            return new PhpArrayLoader($config->path);
+        })->singleton();
 
-            ICUValidator::class => singleton(),
+        $builder->add(ICUValidator::class)->singleton();
 
-            Translator::class => scoped(static function (ContainerInterface $c): Translator {
-                $config = $c->get(I18nConfig::class);
-                assert($config instanceof I18nConfig);
+        $builder->add(Translator::class, static function (ContainerInterface $c): Translator {
+            $config = $c->get(I18nConfig::class);
+            assert($config instanceof I18nConfig);
 
-                $loader = $c->get(LoaderInterface::class);
-                assert($loader instanceof LoaderInterface);
+            $loader = $c->get(LoaderInterface::class);
+            assert($loader instanceof LoaderInterface);
 
-                $cache = $c->get(CacheInterface::class);
-                assert($cache instanceof CacheInterface);
+            $cache = $c->get(CacheInterface::class);
+            assert($cache instanceof CacheInterface);
 
-                return new Translator(
-                    loader: $loader,
-                    cache: $cache,
-                    default: $config->default,
-                    supported: $config->supported,
-                    ttl: $config->ttl,
-                );
-            }),
-        ]);
+            return new Translator(
+                loader: $loader,
+                cache: $cache,
+                default: $config->default,
+                supported: $config->supported,
+                ttl: $config->ttl,
+            );
+        })->scoped();
     }
 
     public function boot(ContainerInterface $container): void
