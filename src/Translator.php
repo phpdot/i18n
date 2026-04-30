@@ -3,6 +3,20 @@
 declare(strict_types=1);
 
 /**
+ * Translator with ICU MessageFormat support.
+ *
+ * Resolves dot-separated keys against a `LoaderInterface` and renders
+ * templates through `ext-intl`. Holds a mutable active locale, an in-memory
+ * cache of loaded translations, and delegates persistence across instances
+ * to the injected PSR-16 cache. Falls back to the default language when a
+ * key is missing in the active language; returns `[key]` and tracks the
+ * miss when not found in either.
+ *
+ * The `#[Scoped]` attribute is a hint to `phpdot/container` so each
+ * execution unit (request, coroutine, etc.) gets its own instance — the
+ * class itself is runtime-agnostic and works standalone with any PSR-16
+ * cache and a manual `new Translator(...)`.
+ *
  * @author Omar Hamdan <omar@phpdot.com>
  * @license MIT
  */
@@ -92,13 +106,8 @@ final class Translator
         ]);
 
         try {
-            $formatter = @new \MessageFormatter($this->locale, $template);
+            $formatter = new \MessageFormatter($this->locale, $template);
         } catch (\IntlException) {
-            return $template;
-        }
-
-        /** @phpstan-ignore identical.alwaysFalse */
-        if ($formatter === false) {
             return $template;
         }
 

@@ -3,6 +3,13 @@
 declare(strict_types=1);
 
 /**
+ * Standalone ICU MessageFormat template validator.
+ *
+ * Use to syntax-check templates without invoking the full `Translator` —
+ * useful in CLI tools, build pipelines, and unit tests for catalogs. Wraps
+ * `ext-intl`'s `MessageFormatter` and surfaces both construction-time
+ * (`IntlException`) and parse-time (`getErrorCode()`) failures uniformly.
+ *
  * @author Omar Hamdan <omar@phpdot.com>
  * @license MIT
  */
@@ -25,14 +32,9 @@ final class ICUValidator
     public function validate(string $template, string $locale = 'en'): array
     {
         try {
-            $formatter = @new \MessageFormatter($locale, $template);
+            $formatter = new \MessageFormatter($locale, $template);
         } catch (\IntlException $e) {
             return [$e->getMessage()];
-        }
-
-        /** @phpstan-ignore identical.alwaysFalse */
-        if ($formatter === false) {
-            return [intl_get_error_message()];
         }
 
         if ($formatter->getErrorCode() !== 0) {

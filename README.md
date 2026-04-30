@@ -312,8 +312,9 @@ Attributes are inert metadata. Without the framework scanner, nothing reads them
 
 - PHP >= 8.3
 - ext-intl
-- phpdot/container ^1.2
 - psr/simple-cache ^3.0
+
+`phpdot/container` is only needed if you want the lifecycle attributes (`#[Singleton]`, `#[Scoped]`, `#[Binds]`, `#[Config]`) to be honored. Without it, the attributes sit as inert metadata and the package works the same way through plain `new Translator(...)`.
 
 ## License
 
