@@ -3,6 +3,13 @@
 declare(strict_types=1);
 
 /**
+ * Source-agnostic translation loader.
+ *
+ * Implementations resolve a flat key => ICU template map for a given language
+ * code. Keys are dot-separated (`messages.welcome`); values are ICU
+ * MessageFormat templates. Bind one implementation as `LoaderInterface` in
+ * the container, or compose several through `ChainLoader`.
+ *
  * @author Omar Hamdan <omar@phpdot.com>
  * @license MIT
  */

@@ -2,6 +2,17 @@
 
 declare(strict_types=1);
 
+/**
+ * Configuration DTO for the i18n system.
+ *
+ * Hydrated by `phpdot/config` from the `i18n` section. Holds the default
+ * language, the list of supported codes, the base path that loaders resolve
+ * against, and the PSR-16 cache TTL applied to compiled translation arrays.
+ *
+ * @author Omar Hamdan <omar@phpdot.com>
+ * @license MIT
+ */
+
 namespace PHPdot\I18n;
 
 use PHPdot\Container\Attribute\Config;
@@ -20,6 +31,5 @@ final readonly class I18nConfig
         public array $supported = ['en'],
         public string $path = '',
         public int $ttl = 3600,
-    ) {
-    }
+    ) {}
 }

@@ -3,6 +3,14 @@
 declare(strict_types=1);
 
 /**
+ * Default loader — reads PHP files returning `array<string, string>`.
+ *
+ * Scans `<config.path>/<language>/*.php`. Each file's keys are prefixed by
+ * the filename without extension, so `messages.php` returning `['welcome' =>
+ * 'Hi {name}']` becomes `messages.welcome`. Files that don't return an array
+ * are silently skipped to keep partial deploys safe. Auto-bound to
+ * `LoaderInterface` via `#[Binds]`.
+ *
  * @author Omar Hamdan <omar@phpdot.com>
  * @license MIT
  */
@@ -19,8 +27,7 @@ final class PhpArrayLoader implements LoaderInterface
 {
     public function __construct(
         private readonly I18nConfig $config,
-    ) {
-    }
+    ) {}
 
     /**
      * Load all translations for a language from PHP array files.

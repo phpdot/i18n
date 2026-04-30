@@ -3,6 +3,13 @@
 declare(strict_types=1);
 
 /**
+ * Loader that reads JSON files containing flat key/value translation maps.
+ *
+ * Scans `<config.path>/<language>/*.json`. Each file's keys are prefixed by
+ * the filename without extension. Useful for sharing the same source files
+ * with non-PHP tooling. Not auto-bound — register explicitly or compose via
+ * `ChainLoader` when you want to mix it with `PhpArrayLoader`.
+ *
  * @author Omar Hamdan <omar@phpdot.com>
  * @license MIT
  */
@@ -15,8 +22,7 @@ final class JsonLoader implements LoaderInterface
 {
     public function __construct(
         private readonly I18nConfig $config,
-    ) {
-    }
+    ) {}
 
     /**
      * Load all translations for a language from JSON files.
