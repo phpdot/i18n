@@ -24,11 +24,12 @@ declare(strict_types=1);
 namespace PHPdot\I18n;
 
 use PHPdot\Container\Attribute\Scoped;
+use PHPdot\Contracts\I18n\MessageTranslatorInterface;
 use PHPdot\I18n\Loader\LoaderInterface;
 use Psr\SimpleCache\CacheInterface;
 
 #[Scoped]
-final class Translator
+final class Translator implements MessageTranslatorInterface
 {
     private string $locale;
     private string $language;

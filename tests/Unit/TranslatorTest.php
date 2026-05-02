@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PHPdot\I18n\Tests\Unit;
 
+use PHPdot\Contracts\I18n\MessageTranslatorInterface;
 use PHPdot\I18n\I18nConfig;
 use PHPdot\I18n\Loader\LoaderInterface;
 use PHPdot\I18n\Loader\PhpArrayLoader;
@@ -41,6 +42,14 @@ final class TranslatorTest extends TestCase
             $cache ?? $this->cache,
             $config ?? $this->config,
         );
+    }
+
+    // --- contract ---
+
+    #[Test]
+    public function implementsMessageTranslatorInterface(): void
+    {
+        self::assertInstanceOf(MessageTranslatorInterface::class, $this->createTranslator());
     }
 
     // --- setLocale ---
