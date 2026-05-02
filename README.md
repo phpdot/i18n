@@ -312,9 +312,14 @@ Attributes are inert metadata. Without the framework scanner, nothing reads them
 
 - PHP >= 8.3
 - ext-intl
+- phpdot/contracts ^1.3
 - psr/simple-cache ^3.0
 
 `phpdot/container` is only needed if you want the lifecycle attributes (`#[Singleton]`, `#[Scoped]`, `#[Binds]`, `#[Config]`) to be honored. Without it, the attributes sit as inert metadata and the package works the same way through plain `new Translator(...)`.
+
+## Cross-package contract
+
+`Translator` implements `PHPdot\Contracts\I18n\MessageTranslatorInterface`. Other packages (e.g. `phpdot/error`) can depend on the interface alone — they do not need to require `phpdot/i18n`. Any custom translator with a matching `translate(string $key, array $params = []): string` signature works wherever the interface is consumed.
 
 ## License
 
